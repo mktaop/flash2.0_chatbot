@@ -3,6 +3,7 @@
 import streamlit as st, os
 from google import genai
 from google.genai import types
+from pypdf import PdfReader, PdfWriter, PdfMerger
 
 
 def setup_page():
@@ -26,6 +27,7 @@ def setup_page():
 def get_choice():
     choice = st.sidebar.radio("Choose:", ["Converse with Gemini 2.0",
                                           "Chat with a PDF",
+                                          "Chat with many PDFs",
                                           "Chat with an image",
                                           "Chat with audio",
                                           "Chat with video"],)
@@ -107,8 +109,58 @@ def main():
                         response2 = chat2.send_message(st.session_state.message)
                         st.markdown(response2.text)
                         st.sidebar.markdown(response2.usage_metadata)
-                    #asyncio.run(backnforth(st.session_state.message))
                     st.session_state.message += response2.text
+                    
+    elif choice == "Chat with many PDFs":
+        st.subheader("Chat with your PDF file")
+        clear = get_clear()
+        if clear:
+            if 'message' in st.session_state:
+                del st.session_state['message']
+    
+        if 'message' not in st.session_state:
+            st.session_state.message = " "
+        
+        if clear not in st.session_state:
+        
+            uploaded_files2 = st.file_uploader("Choose 1 or more files",  type=['pdf'], accept_multiple_files=True)
+               
+            if uploaded_files2:
+                merger = PdfMerger()
+                for file in uploaded_files2:
+                        merger.append(file)
+
+                fullfile = "merged_all_files.pdf"
+                merger.write(fullfile)
+                merger.close()
+
+                file_upload = client.files.upload(file=fullfile)
+                chat2b = client.chats.create(model=MODEL_ID,
+                    history=[
+                        types.Content(
+                            role="user",
+                            parts=[
+    
+                                    types.Part.from_uri(
+                                        file_uri=file_upload.uri,
+                                        mime_type=file_upload.mime_type),
+                                    ]
+                            ),
+                        ]
+                        )
+                prompt2b = st.chat_input("Enter your question here")
+                if prompt2b:
+                    with st.chat_message("user"):
+                        st.write(prompt2b)
+            
+                    st.session_state.message += prompt2b
+                    with st.chat_message(
+                        "model", avatar="🧞‍♀️",
+                    ):
+                        response2b = chat2b.send_message(st.session_state.message)
+                        st.markdown(response2b.text)
+                        st.sidebar.markdown(response2b.usage_metadata)
+                    st.session_state.message += response2b.text
             
     elif choice == "Chat with an image":
         st.subheader("Chat with your PDF file")
@@ -149,7 +201,6 @@ def main():
                     ):
                         response3 = chat3.send_message(st.session_state.message)
                         st.markdown(response3.text)
-                    #asyncio.run(backnforth(st.session_state.message))
                     st.session_state.message += response3.text
                 
     elif choice == "Chat with audio":
@@ -191,7 +242,6 @@ def main():
                     ):
                         response4 = chat4.send_message(st.session_state.message)
                         st.markdown(response4.text)
-                    #asyncio.run(backnforth(st.session_state.message))
                     st.session_state.message += response4.text
 
     elif choice == "Chat with video":
@@ -233,7 +283,6 @@ def main():
                     ):
                         response5 = chat5.send_message(st.session_state.message)
                         st.markdown(response5.text)
-                    #asyncio.run(backnforth(st.session_state.message))
                     st.session_state.message += response5.text
                     
                 
