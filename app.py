@@ -258,7 +258,14 @@ def main():
             uploaded_files4 = st.file_uploader("Choose your mp4 or mov file",  type=['mp4','mov'], accept_multiple_files=False)
             if uploaded_files4:
                 file_name4=uploaded_files4.name
-                file_upload = client.files.upload(file=file_name4)
+                video_file = client.files.upload(file=file_name4)
+                while video_file.state == "PROCESSING":
+                    time.sleep(10)
+                    video_file = client.files.get(name=video_file.name)
+                
+                if video_file.state == "FAILED":
+                  raise ValueError(video_file.state)
+                
                 chat5 = client.chats.create(model=MODEL_ID,
                     history=[
                         types.Content(
@@ -266,8 +273,8 @@ def main():
                             parts=[
     
                                     types.Part.from_uri(
-                                        file_uri=file_upload.uri,
-                                        mime_type=file_upload.mime_type),
+                                        file_uri=video_file.uri,
+                                        mime_type=video_file.mime_type),
                                     ]
                             ),
                         ]
