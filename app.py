@@ -8,7 +8,7 @@ from pypdf import PdfReader, PdfWriter, PdfMerger
 
 def setup_page():
     st.set_page_config(
-        page_title="	⚡ Voice Chatbot",
+        page_title="	⚡ AI Chatbot",
         layout="centered"
     )
     
