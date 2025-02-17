@@ -1,6 +1,6 @@
 #pip install google-genai
 
-import streamlit as st, os
+import streamlit as st, os, time
 from google import genai
 from google.genai import types
 from pypdf import PdfReader, PdfWriter, PdfMerger
@@ -8,7 +8,7 @@ from pypdf import PdfReader, PdfWriter, PdfMerger
 
 def setup_page():
     st.set_page_config(
-        page_title="	⚡ AI Chatbot",
+        page_title="	⚡ Voice Chatbot",
         layout="centered"
     )
     
@@ -126,15 +126,16 @@ def main():
             uploaded_files2 = st.file_uploader("Choose 1 or more files",  type=['pdf'], accept_multiple_files=True)
                
             if uploaded_files2:
+                path_to_files = '/Users/avi_patel/Documents/trialplay/'
                 merger = PdfMerger()
                 for file in uploaded_files2:
                         merger.append(file)
-
+    
                 fullfile = "merged_all_files.pdf"
                 merger.write(fullfile)
                 merger.close()
 
-                file_upload = client.files.upload(file=fullfile)
+                file_upload = client.files.upload(file=fullfile) 
                 chat2b = client.chats.create(model=MODEL_ID,
                     history=[
                         types.Content(
@@ -256,6 +257,7 @@ def main():
         
         if clear not in st.session_state:
             uploaded_files4 = st.file_uploader("Choose your mp4 or mov file",  type=['mp4','mov'], accept_multiple_files=False)
+            
             if uploaded_files4:
                 file_name4=uploaded_files4.name
                 video_file = client.files.upload(file=file_name4)
@@ -297,5 +299,5 @@ if __name__ == '__main__':
     setup_page()
     api_key = os.environ.get('GOOGLE_API_KEY_NEW')
     client = genai.Client(api_key=api_key)
-    MODEL_ID = "gemini-2.0-flash"
+    MODEL_ID = "gemini-2.0-flash-001"
     main()
